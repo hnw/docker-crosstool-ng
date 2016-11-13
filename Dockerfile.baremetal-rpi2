@@ -1,0 +1,17 @@
+FROM yhnw/crosstool-ng:base
+
+ENV TAG baremetal-rpi2
+
+COPY config.$TAG /tmp/
+RUN mkdir -p /opt/cross/src/ct-ng_$TAG /opt/cross/$TAG &&\
+    chown ct-ng /opt/cross/src/ct-ng_$TAG /opt/cross/$TAG &&\
+    cd /opt/cross/src/ct-ng_$TAG &&\
+    sudo -u ct-ng /opt/cross/bin/ct-ng arm-unknown-eabi &&\
+    sudo -u ct-ng cp /tmp/config.$TAG .config &&\
+    echo "*******" &&\
+    sudo -u ct-ng /opt/cross/bin/ct-ng build ;\
+    echo "*******" &&\
+    tail -100 /opt/cross/src/ct-ng_$TAG/build.log &&\
+    echo "*******" &&\
+    echo 'export PATH=$PATH:/opt/cross/'$TAG'/arm-unknown-eabi/bin' >> ~ct-ng/.bashrc &&\
+    rm -rf /opt/cross/src/ct-ng_$TAG

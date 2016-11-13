@@ -1,0 +1,28 @@
+sudo: required
+
+services:
+  - docker
+
+env:
+  matrix:
+    - TAG=baremetal-rpi1
+    - TAG=baremetal-rpi2
+  global:
+    - USER=yhnw
+    - REPO=crosstool-ng
+    - secure: "evnBmPQh4XQoJfilUtkeg1LvrUq/sA3HZByT3cZiLjVOh06XScMGBe5N3RUp0eIde/lw5zumWZ9RO3W4wMlu4qtQH38uDjk5+XeBOnQ5axrFlHhZ8NesggXjb4/Q2SAzwiRMOQaKGTUfLRft9wGrcVI8uwn746/Rok0+0HxDnrAHS2h7ub2M623uMPWkfNrtqYL9ShERPlGFkceu5wIv6yDy8bfg7SXKiPr3cLYRXYPPB5Ar23uKIRS4y+/+tSepWp3M2Cc5Jmm+qZuQ3Ux9eUuudxljjQX5/B6WQxjmEXjF36vbw5qDfPZVN/k/NoJfG6qh3gLHAtWI+uEGz2XPwL0lrYYVaiuUtpUWNvpY6J35Q12kuPJzdnda9GJYJYGioI2Kjale1IduDKrpW5DvS+lfgWQDZosVtUrer0C0536kplmbv9v3ZNs52seR1DxASm6/Z1eIkhWvJX2g9qI2GeXeJogrkI/3rj7eJ4ZT0XwTv6IM4Dg3d4t2hc3N1xeZ5Xxh7Bi2U8R0KekWbxKjur1agScbTgzCcz5CJ5hC/t0iRvDoxWT88Rfka+Um7aIlGMmlZEDge6mzDMMwzr8+7NLninhfdtO75i700nCLXq/OZdXjXUey1x1ugN0LmwjHZOyWR4qZoTfAuqDCD9yL83jKrfCT/IKoS0pRTS0SedU=" # DOCKER_PASSWORD=...
+
+before_install:
+  - docker version
+  - docker build -t $USER/$REPO:$TAG -f Dockerfile.$TAG .
+  - docker run -d --name $TAG $USER/$REPO:$TAG sleep 300
+  - docker ps -a
+
+script:
+  - docker ps | grep -q $TAG
+
+after_success:
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+      docker login -u=$USER -p=$DOCKER_PASSWORD &&
+      docker push $USER/$REPO ;
+    fi
